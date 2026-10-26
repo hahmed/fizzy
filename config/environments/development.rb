@@ -97,4 +97,10 @@ Rails.application.configure do
 
   # Canonical host for mailer URLs (emails always link here, not personal Tailscale URLs)
   config.action_mailer.default_url_options = { host: "#{config.hosts.first}:3006" }
+
+  # Advertise the HTTP/3 listener only when bin/dev --http3 started one. Browsers cache Alt-Svc for
+  # ma= seconds and would keep probing a UDP port that nothing is bound to otherwise.
+  if ENV["QUICSILVER_PORT"].present?
+    config.quicsilver.alt_svc = { port: Integer(ENV["QUICSILVER_PORT"]), max_age: 60 }
+  end
 end

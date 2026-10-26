@@ -1,0 +1,4 @@
+# Action Cable has no HTTP/3 transport, so Turbo streams stay on the TCP listener while HTTP/3 serves
+# everything else. bin/dev --http3 generates the shared certificate and exports these before foreman starts.
+web: bin/rails server -b "ssl://0.0.0.0:${QUICSILVER_PORT}?key=${QUICSILVER_KEY_FILE}&cert=${QUICSILVER_CERT_FILE}"
+h3: bin/quicsilver

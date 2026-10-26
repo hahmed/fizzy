@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+# Serves the Rails app over HTTP/3 (QUIC, UDP) beside the TCP HTTPS listener in Procfile.http3.dev.
+# Both bind the same port number: TCP 3443 and UDP 3443, which is the shape production takes.
+
+ENV["RAILS_ENV"] ||= "development"
+
+require_relative "../config/environment"
+require "quicsilver"
+require "quicsilver/rails/dev_web_transport_certificate"
+
+# The same certificate Puma serves on TCP. A browser that learns about h3 from Alt-Svc validates the
+# UDP listener against the origin it already trusts, so a second certificate would fail the switch.
+certificate = Quicsilver::Rails::DevWebTransportCertificate.fetch
+
+configuration = Quicsilver::Transport::Configuration.new \
+  certificate.cert_file, certificate.key_file,
+  idle_timeout_ms: 120_000, keep_alive_interval_ms: 20_000, max_unidirectional_streams: 100
+
+server = Quicsilver::Server.new \
+  Integer(ENV.fetch("QUICSILVER_PORT", "3443")),
+  address: ENV.fetch("QUICSILVER_HOST", "0.0.0.0"),
+  app: Rails.application,
+  server_configuration: configuration
+
+server.start
