@@ -12,8 +12,8 @@ GIT
 
 GIT
   remote: https://github.com/hahmed/quicsilver-rails.git
-  revision: 56c4b7dfdddad904c1e61b89d6e855a3b2a0cd30
-  branch: main
+  revision: d0a2b2a9bde020b1b171e287f1ce5edcf13dbdea
+  branch: action-cable-webtransport
   specs:
     quicsilver-rails (0.1.0)
       actioncable (>= 7.1)

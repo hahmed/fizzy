@@ -21,3 +21,8 @@ pin "@rails/actiontext", to: "actiontext.esm.js"
 pin "dompurify" # @3.4.17
 pin "prismjs/components/prism-mermaid", to: "prism-mermaid.js"
 pin "pele", preload: false # @1.6.0
+pin "@rails/actioncable", to: "@rails--actioncable.js" # @8.1.400
+
+# Served from the quicsilver-rails engine's app/javascript, not vendor/javascript.
+pin "quicsilver/action_cable", to: "quicsilver/action_cable.js"
+pin "quicsilver/web_transport", to: "quicsilver/web_transport.js"

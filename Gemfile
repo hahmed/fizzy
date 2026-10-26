@@ -21,7 +21,7 @@ gem "puma", "~> 8.0"
 # HTTP/3 over QUIC. The listener is opt-in through bin/dev --http3, but the engine loads either way:
 # config.quicsilver only exists once it has, and quicsilver-rails pulls in quicsilver itself.
 gem "quicsilver", github: "hahmed/quicsilver", branch: "main", require: false
-gem "quicsilver-rails", github: "hahmed/quicsilver-rails", branch: "main"
+gem "quicsilver-rails", github: "hahmed/quicsilver-rails", branch: "action-cable-webtransport"
 gem "solid_cable", "~> 4.1"
 gem "solid_cache", "~> 1.0"
 gem "solid_queue", "~> 1.7"

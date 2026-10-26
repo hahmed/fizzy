@@ -18,6 +18,7 @@
 
   <%= render "layouts/theme_preference" %>
   <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+  <%= quicsilver_webtransport_certificate_meta_tag if respond_to?(:quicsilver_webtransport_certificate_meta_tag) %>
   <%= javascript_importmap_tags %>
 
   <%= tenanted_action_cable_meta_tag %>
