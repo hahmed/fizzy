@@ -3,6 +3,7 @@
 PORT=3006
 USE_TAILSCALE=0
 USE_PUSH=0
+USE_HTTP3=0
 FOREMAN_ARGS=()
 
 export PORT
@@ -20,6 +21,7 @@ for arg in "$@"; do
   case $arg in
     --tailscale) USE_TAILSCALE=1 ;;
     --push) USE_PUSH=1 ;;
+    --http3) USE_HTTP3=1 ;;
     --help|-h)
       cat <<USAGE
 Usage: bin/dev [options]
@@ -29,6 +31,7 @@ Starts the Fizzy development processes using foreman.
 Options:
   --tailscale   Expose the dev server via tailscale serve
   --push        Load push notification credentials from 1Password (implies SaaS mode)
+  --http3       Serve HTTPS over TCP and HTTP/3 over UDP on port 3443
   -h, --help    Show this help
 
 In SaaS mode a hotcell cell boots beside the server with HOTCELL_ROOT set, and
@@ -58,6 +61,24 @@ fi
 
 if [ -f tmp/oss-config.txt ]; then
   export OSS_CONFIG=1
+fi
+
+# Browsers only reach HTTP/3 after an Alt-Svc header from a TCP HTTPS origin, so --http3 runs both
+# listeners on the same port: Puma on TCP, Quicsilver on UDP, sharing one certificate.
+if [ "$USE_HTTP3" = "1" ]; then
+  export QUICSILVER_PORT=${QUICSILVER_PORT:-3443}
+  export QUICSILVER_CERT_FILE=tmp/quicsilver/webtransport/localhost.pem
+  export QUICSILVER_KEY_FILE=tmp/quicsilver/webtransport/localhost-key.pem
+  export QUICSILVER_DEV_HOSTS=${QUICSILVER_DEV_HOSTS:-localhost,app.fizzy.localhost,127.0.0.1,::1}
+
+  if ! command -v mkcert >/dev/null 2>&1; then
+    echo "Warning: mkcert not found, falling back to a self-signed certificate browsers will reject." >&2
+    echo "         Install it with: brew install mkcert && mkcert -install" >&2
+  fi
+
+  # Generated before foreman starts: both processes read the same files, and racing two generators
+  # leaves Puma and Quicsilver serving different certificates for one origin.
+  bin/rails runner "Quicsilver::Rails::DevWebTransportCertificate.fetch"
 fi
 
 # The cell is SaaS-only, so it lives in saas/Procfile.dev — its gems come from a private repository,
@@ -98,6 +119,9 @@ if [ "$USE_TAILSCALE" = "1" ]; then
     exit 1
   fi
   DEV_URL="https://$TS_HOSTNAME:$TS_PORT/"
+elif [ "$USE_HTTP3" = "1" ]; then
+  PROCFILE=Procfile.http3.dev
+  DEV_URL="https://app.fizzy.localhost:$QUICSILVER_PORT/"
 else
   DEV_URL="http://app.fizzy.localhost:$PORT/"
 fi

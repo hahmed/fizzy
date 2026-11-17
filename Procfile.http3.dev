@@ -1,0 +1,6 @@
+# Puma serves HTTPS on TCP; Quicsilver serves HTTP/3 on UDP, same port, including Action Cable over
+# WebTransport. Puma stays as the origin browsers first reach (Alt-Svc points them at h3) and as the
+# WebSocket fallback. bin/dev --http3 generates the shared certificate and exports these before foreman starts.
+web: bin/rails server -b "ssl://0.0.0.0:${QUICSILVER_PORT}?key=${QUICSILVER_KEY_FILE}&cert=${QUICSILVER_CERT_FILE}"
+# foreman kills 5s after the first INT, so the graceful shutdown has to fit inside that.
+h3: QUICSILVER_SHUTDOWN_TIMEOUT=3 bin/quicsilver
